@@ -1,0 +1,39 @@
+
+=== PRUEBA COMBINADA - se apagan db1 y app1 al mismo tiempo ===
+>>> Estado inicial:
+   db1: activo (ve un clúster de 3 nodos)
+   db2: activo (ve un clúster de 3 nodos)
+   db3: activo (ve un clúster de 3 nodos)
+   Escrituras normales:
+           5 app1->db1
+           5 app2->db2
+>>> APAGANDO db1 y app1 a la vez
+>>> Estado con fallas:
+   db1: APAGADO
+   db2: activo (ve un clúster de 2 nodos)
+   db3: activo (ve un clúster de 2 nodos)
+   Escrituras con db1 y app1 caídos:
+          15 app2->db2
+>>> Recuperando db1 y app1
+>>> Estado final:
+   db1: activo (ve un clúster de 3 nodos)
+   db2: activo (ve un clúster de 3 nodos)
+   db3: activo (ve un clúster de 3 nodos)
+   Escrituras tras la recuperación:
+           6 app1->db2
+           8 app2->db2
+
+=== RESULTADO ===
+   Escrituras exitosas: 140
+   Escrituras fallidas: 0
+   Tiempo de respuesta máximo: 1.363879 s  (promedio: 0.050 s)
+   Distribución (instancia -> nodo BD):
+          11 app1->db1
+          17 app1->db2
+         112 app2->db2
+   Filas en la tabla 'latido' en cada nodo (deben ser iguales):
+     db1: 2824
+     db2: 2824
+     db3: 2824
+
+✔ PRUEBA SUPERADA: el sistema siguió funcionando y escribiendo sin errores.

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('No encontrado')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor angosto">
+    <div class="alerta error">No existe ningún reporte con el código <b th:text="${codigo}"></b>.</div>
+    <a th:href="@{/reportes}">← Volver a reportes</a>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

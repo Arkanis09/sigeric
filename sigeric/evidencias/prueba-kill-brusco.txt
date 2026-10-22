@@ -1,0 +1,19 @@
+kill db2 + kill app2
+          15 app1->db1
+   db1: activo (ve un clúster de 2 nodos)
+   db2: APAGADO
+   db3: activo (ve un clúster de 2 nodos)
+
+=== RESULTADO ===
+   Escrituras exitosas: 113
+   Escrituras fallidas: 0
+   Tiempo de respuesta máximo: 4.181807 s  (promedio: 0.100 s)
+   Distribución (instancia -> nodo BD):
+          93 app1->db1
+          20 app2->db3
+   Filas en la tabla 'latido' en cada nodo (deben ser iguales):
+     db1: 658
+     db2: 658
+     db3: 658
+
+✔ PRUEBA SUPERADA: el sistema siguió funcionando y escribiendo sin errores.

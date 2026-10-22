@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · SIGERIC'">SIGERIC</title>
+    <link rel="stylesheet" th:href="@{/css/sigeric.css}">
+</head>
+<body>
+
+<header th:fragment="nav" class="nav">
+    <div class="contenedor nav-in">
+        <a th:href="@{/}" class="marca"><span class="logo">S</span> SIGERIC</a>
+        <nav>
+            <a th:href="@{/seguimiento}">Consultar reporte</a>
+            <a th:href="@{/estado}">Alta disponibilidad</a>
+            <th:block sec:authorize="isAuthenticated()">
+                <a th:href="@{/reportes}">Reportes</a>
+                <a th:href="@{/reportes/nuevo}" sec:authorize="hasAnyRole('CIUDADANO','ADESCO')">Nuevo reporte</a>
+                <a th:href="@{/panel}" sec:authorize="hasRole('MUNICIPAL')">Panel</a>
+                <form th:action="@{/logout}" method="post" class="en-linea">
+                    <button class="btn-link" type="submit">Salir (<span sec:authentication="name"></span>)</button>
+                </form>
+            </th:block>
+            <th:block sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn btn-claro">Ingresar</a>
+            </th:block>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="mensajes">
+    <div class="alerta ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+</div>
+
+<footer th:fragment="pie" class="pie">
+    <div class="contenedor pie-in">
+        <span>SIGERIC · Gestión de la Calidad del Software · UFG 2026</span>
+        <a th:href="@{/estado}" class="ha-chip" title="Instancia de la aplicación y nodo de base de datos que atendieron esta página">
+            <span class="punto"></span>
+            App: <b th:text="${nodoApp}">app1</b> · BD: <b th:text="${nodoBd}">db1</b>
+        </a>
+    </div>
+</footer>
+
+<span th:fragment="estado(e)" th:class="'etiqueta e-' + ${e.name()}" th:text="${e.etiqueta}">Estado</span>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Registro')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor angosto">
+    <form th:action="@{/registro}" th:object="${form}" method="post" class="tarjeta formulario">
+        <h2>Crear cuenta</h2>
+        <label>Nombre completo<input th:field="*{nombre}" required></label>
+        <small class="err" th:errors="*{nombre}"></small>
+        <label>Correo<input type="email" th:field="*{email}" required></label>
+        <small class="err" th:errors="*{email}"></small>
+        <label>Contraseña<input type="password" th:field="*{password}" required minlength="6"></label>
+        <small class="err" th:errors="*{password}"></small>
+        <label>Municipio<input th:field="*{municipio}" required placeholder="Ej. San Salvador Centro"></label>
+        <small class="err" th:errors="*{municipio}"></small>
+        <label>Tipo de cuenta
+            <select th:field="*{rol}">
+                <option value="CIUDADANO">Ciudadano</option>
+                <option value="ADESCO">Representante de ADESCO</option>
+            </select>
+        </label>
+        <small class="err" th:errors="*{rol}"></small>
+        <button class="btn btn-primario" type="submit">Crear cuenta</button>
+    </form>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

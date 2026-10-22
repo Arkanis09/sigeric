@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error · SIGERIC</title>
+    <link rel="stylesheet" th:href="@{/css/sigeric.css}">
+</head>
+<body>
+<main class="contenedor angosto">
+    <div class="tarjeta">
+        <h2 th:text="${status == 403} ? 'No tienes permiso para esto' : (${status == 404} ? 'Página no encontrada' : 'Ocurrió un error')">Error</h2>
+        <p class="tenue" th:text="'Código ' + ${status}"></p>
+        <a th:href="@{/}" class="btn btn-primario">Ir al inicio</a>
+    </div>
+</main>
+</body>
+</html>

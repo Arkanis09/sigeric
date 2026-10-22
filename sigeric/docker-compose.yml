@@ -1,0 +1,129 @@
+# SIGERIC - Entorno completo de alta disponibilidad
+#
+#   Navegador ──> NGINX (balanceador :8080)
+#                   ├──> app1 (Spring Boot)  ─┐
+#                   └──> app2 (Spring Boot)  ─┤──> Clúster MariaDB Galera (multi-maestro)
+#                                              │     db1 <──> db2 <──> db3
+#
+# Funciona igual en Linux (CachyOS) y en Windows (Docker Desktop).
+# Levantar:   docker compose up -d --build
+# Estado:     Linux: ./scripts/estado.sh        Windows: .\scripts\windows\estado.ps1
+# Pruebas HA: Linux: ./scripts/prueba-ha-*.sh   Windows: .\scripts\windows\prueba-ha-*.ps1
+
+# Nombre fijo del proyecto: así la red siempre se llama "sigeric_sigeric" aunque la carpeta
+# tenga otro nombre (por ejemplo "sigeric-main" al descargar el ZIP de GitHub).
+name: sigeric
+
+x-nodo-galera: &nodo-galera
+  build: ./galera
+  image: sigeric-galera:latest
+  restart: unless-stopped
+  environment: &env-bd
+    TZ: America/El_Salvador
+    MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-RootSigeric2026}
+    MARIADB_DATABASE: sigeric
+    MARIADB_USER: sigeric
+    MARIADB_PASSWORD: ${DB_PASSWORD:-Sigeric2026}
+  healthcheck:
+    test: ["CMD-SHELL", "mariadb -uroot -p$$MARIADB_ROOT_PASSWORD -N -e \"SHOW STATUS LIKE 'wsrep_ready'\" | grep -q ON"]
+    interval: 5s
+    timeout: 5s
+    retries: 30
+    start_period: 20s
+
+x-app: &app
+  build: ./app
+  image: sigeric-app:latest
+  restart: unless-stopped
+  depends_on:
+    db1: { condition: service_healthy }
+    db2: { condition: service_healthy }
+    db3: { condition: service_healthy }
+
+services:
+  db1:
+    <<: *nodo-galera
+    container_name: db1
+    hostname: db1
+    environment:
+      <<: *env-bd
+      NODO_SEMILLA: "1"        # solo db1 crea el clúster la primera vez
+    command: ["--wsrep-node-name=db1", "--wsrep-node-address=172.28.50.11", "--wsrep-node-incoming-address=172.28.50.11:3306"]
+    volumes:
+      - db1-data:/var/lib/mysql
+      - galera-coord:/coord
+    ports:
+      - "3307:3306"        # para verlo con HeidiSQL/DBeaver: 127.0.0.1:3307
+    networks: { sigeric: { ipv4_address: 172.28.50.11 } }
+
+  db2:
+    <<: *nodo-galera
+    container_name: db2
+    hostname: db2
+    command: ["--wsrep-node-name=db2", "--wsrep-node-address=172.28.50.12", "--wsrep-node-incoming-address=172.28.50.12:3306"]
+    volumes:
+      - db2-data:/var/lib/mysql
+      - galera-coord:/coord
+    ports:
+      - "3308:3306"        # para verlo con HeidiSQL/DBeaver: 127.0.0.1:3308
+    networks: { sigeric: { ipv4_address: 172.28.50.12 } }
+
+  db3:
+    <<: *nodo-galera
+    container_name: db3
+    hostname: db3
+    command: ["--wsrep-node-name=db3", "--wsrep-node-address=172.28.50.13", "--wsrep-node-incoming-address=172.28.50.13:3306"]
+    volumes:
+      - db3-data:/var/lib/mysql
+      - galera-coord:/coord
+    ports:
+      - "3309:3306"        # para verlo con HeidiSQL/DBeaver: 127.0.0.1:3309
+    networks: { sigeric: { ipv4_address: 172.28.50.13 } }
+
+  # Dos instancias IDÉNTICAS del backend. Ambas están activas a la vez (activo-activo).
+  # Cada una prefiere un nodo distinto de Galera, pero conoce los tres.
+  app1:
+    <<: *app
+    container_name: app1
+    hostname: app1
+    environment:
+      NODO_APP: app1
+      DB_URL: jdbc:mariadb:sequential://172.28.50.11:3306,172.28.50.12:3306,172.28.50.13:3306/sigeric
+      DB_USER: sigeric
+      DB_PASSWORD: ${DB_PASSWORD:-Sigeric2026}
+    networks: { sigeric: { ipv4_address: 172.28.50.21 } }
+
+  app2:
+    <<: *app
+    container_name: app2
+    hostname: app2
+    environment:
+      NODO_APP: app2
+      DB_URL: jdbc:mariadb:sequential://172.28.50.12:3306,172.28.50.13:3306,172.28.50.11:3306/sigeric
+      DB_USER: sigeric
+      DB_PASSWORD: ${DB_PASSWORD:-Sigeric2026}
+    networks: { sigeric: { ipv4_address: 172.28.50.22 } }
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
+    restart: unless-stopped
+    depends_on: [app1, app2]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: { sigeric: { ipv4_address: 172.28.50.30 } }
+
+networks:
+  sigeric:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.50.0/24
+
+volumes:
+  db1-data:
+  db2-data:
+  db3-data:
+  galera-coord:   # volumen compartido solo para elegir quién reinicia el clúster

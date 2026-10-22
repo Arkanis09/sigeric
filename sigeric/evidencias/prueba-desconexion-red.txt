@@ -1,0 +1,27 @@
+           3 app1->db1
+           3 app2->db3
+desconectando db1 de la red sigeric_sigeric
+           8 app1->db2
+           7 app2->db3
+   db1: activo (ve un clúster de 1 nodos)
+   db2: activo (ve un clúster de 2 nodos)
+   db3: activo (ve un clúster de 2 nodos)
+   db1: activo (ve un clúster de 3 nodos)
+   db2: activo (ve un clúster de 3 nodos)
+   db3: activo (ve un clúster de 3 nodos)
+
+=== RESULTADO ===
+   Escrituras exitosas: 180
+   Escrituras fallidas: 0
+   Tiempo de respuesta máximo: 8.031692 s  (promedio: 0.060 s)
+   Distribución (instancia -> nodo BD):
+           9 app1->db1
+          82 app1->db2
+          89 app2->db3
+   Filas en la tabla 'latido' en cada nodo (deben ser iguales):
+     db1: 306
+     db2: 306
+     db3: 306
+
+✔ PRUEBA SUPERADA: el sistema siguió funcionando y escribiendo sin errores.
+    180 OK

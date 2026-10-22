@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Alta disponibilidad')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor">
+    <h2>Monitor de alta disponibilidad</h2>
+    <p class="tenue">Esta página consulta <code>/api/estado</code> cada segundo a través del balanceador NGINX.
+        Apaga un nodo (<code>docker stop app1</code> o <code>docker stop db1</code>) y observa cómo el sistema sigue respondiendo.</p>
+
+    <div class="cuadricula-3">
+        <div class="tarjeta indicador"><small>Clúster de base de datos</small><span id="tamano">–</span><small id="estadoCluster">–</small></div>
+        <div class="tarjeta indicador"><small>Peticiones correctas</small><span id="ok">0</span><small>fallidas: <b id="fallos">0</b></small></div>
+        <div class="tarjeta indicador"><small>Escrituras de prueba</small><span id="escrituras">0</span><small>fallidas: <b id="escFallos">0</b></small></div>
+    </div>
+
+    <div class="cuadricula-2">
+        <div class="tarjeta">
+            <h3>Instancias de la aplicación</h3>
+            <div class="nodos" id="apps">
+                <div class="nodo" data-n="app1"><b>app1</b><small>sin datos</small></div>
+                <div class="nodo" data-n="app2"><b>app2</b><small>sin datos</small></div>
+            </div>
+            <h3>Nodos del clúster Galera</h3>
+            <div class="nodos" id="dbs">
+                <div class="nodo" data-n="172.28.50.11"><b>db1</b><small>–</small></div>
+                <div class="nodo" data-n="172.28.50.12"><b>db2</b><small>–</small></div>
+                <div class="nodo" data-n="172.28.50.13"><b>db3</b><small>–</small></div>
+            </div>
+            <label class="interruptor"><input type="checkbox" id="escribir"> Escribir un registro de prueba en cada consulta</label>
+        </div>
+        <div class="tarjeta">
+            <h3>Últimas respuestas</h3>
+            <ol class="bitacora" id="bitacora"></ol>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const visto = {};          // última vez que respondió cada instancia de la app
+  let ok = 0, fallos = 0, esc = 0, escFallos = 0;
+
+  function bitacora(texto, clase) {
+    const li = document.createElement('li');
+    li.className = clase;
+    li.textContent = new Date().toLocaleTimeString() + '  ' + texto;
+    const ol = $('bitacora');
+    ol.prepend(li);
+    while (ol.children.length > 14) ol.lastChild.remove();
+  }
+
+  function pintarApps() {
+    document.querySelectorAll('#apps .nodo').forEach(n => {
+      const t = visto[n.dataset.n];
+      const vivo = t && (Date.now() - t) < 4000;
+      n.className = 'nodo ' + (t ? (vivo ? 'vivo' : 'caido') : '');
+      n.querySelector('small').textContent = t ? (vivo ? 'respondiendo' : 'sin respuesta') : 'sin datos';
+    });
+  }
+
+  async function consultar() {
+    try {
+      const r = await fetch('/api/estado', {cache: 'no-store'});
+      const d = await r.json();
+      ok++;
+      visto[d.nodoApp] = Date.now();
+      const tam = d.wsrep_cluster_size || '?';
+      $('tamano').textContent = tam + ' / 3';
+      $('tamano').className = tam == 3 ? 'verde' : (tam >= 2 ? 'ambar' : 'rojo');
+      $('estadoCluster').textContent = (d.wsrep_cluster_status || '') + ' · ' + (d.wsrep_local_state_comment || '');
+      // Con el clúster completo (3/3) todos los nodos están dentro; si falta alguno, la lista de
+      // direcciones de Galera dice cuál es. Si db1..db3 no aparece por IP, se busca por nombre.
+      const nTam = parseInt(tam, 10) || 0;
+      const activos = (d.wsrep_incoming_addresses || '').split(',').map(a => a.trim().split(':')[0]);
+      document.querySelectorAll('#dbs .nodo').forEach(n => {
+        const nombre = n.querySelector('b').textContent;
+        const vivo = nTam >= 3 || activos.includes(n.dataset.n) || activos.includes(nombre) || d.nodoBd === nombre;
+        n.className = 'nodo ' + (vivo ? 'vivo' : 'caido');
+        n.querySelector('small').textContent = vivo ? (n.querySelector('b').textContent === d.nodoBd ? 'en uso por ' + d.nodoApp : 'sincronizado') : 'fuera del clúster';
+      });
+      let texto = 'atendió ' + d.nodoApp + ' → ' + d.nodoBd + ' (clúster ' + tam + ')';
+      if ($('escribir').checked) {
+        try {
+          const w = await (await fetch('/api/latido', {method: 'POST'})).json();
+          esc++;
+          visto[w.nodoApp] = Date.now();
+          texto += ' · escritura #' + w.id + ' en ' + w.nodoBd + ' vía ' + w.nodoApp;
+        } catch (e) { escFallos++; texto += ' · ESCRITURA FALLIDA'; }
+      }
+      bitacora(texto, 'ok');
+    } catch (e) {
+      fallos++;
+      bitacora('sin respuesta del sistema', 'mal');
+    }
+    $('ok').textContent = ok; $('fallos').textContent = fallos;
+    $('escrituras').textContent = esc; $('escFallos').textContent = escFallos;
+    pintarApps();
+  }
+  consultar();
+  setInterval(consultar, 1000);
+})();
+</script>
+</body>
+</html>

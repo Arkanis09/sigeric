@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head(${reporte.codigo})}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor">
+    <div th:replace="~{fragmentos :: mensajes}"></div>
+    <p><a th:href="@{/reportes}">← Volver a reportes</a></p>
+    <div class="detalle">
+        <div class="tarjeta">
+            <div class="titulo-fila">
+                <div>
+                    <p class="codigo grande" th:text="${reporte.codigo}"></p>
+                    <h2 th:text="${reporte.titulo}"></h2>
+                </div>
+                <span th:replace="~{fragmentos :: estado(${reporte.estado})}"></span>
+            </div>
+            <p th:text="${reporte.descripcion}"></p>
+            <dl class="datos">
+                <dt>Categoría</dt><dd th:text="${reporte.categoria.etiqueta}"></dd>
+                <dt>Dirección</dt><dd th:text="${reporte.direccion}"></dd>
+                <dt>Municipio</dt><dd th:text="${reporte.municipio}"></dd>
+                <dt>Prioridad</dt><dd th:text="${reporte.prioridad.etiqueta}"></dd>
+                <dt>Reportado por</dt><dd th:text="${reporte.autor.nombre}"></dd>
+                <dt>Fecha de recepción</dt><dd th:text="${#temporals.format(reporte.creado, 'dd/MM/yyyy HH:mm')}"></dd>
+                <dt>Registrado en</dt><dd><code th:text="${reporte.nodoApp} + ' → ' + ${reporte.nodoBd}"></code></dd>
+            </dl>
+        </div>
+
+        <div>
+            <div class="tarjeta" th:unless="${#lists.isEmpty(estadosPermitidos)}">
+                <h3>Actualizar estado</h3>
+                <form th:action="@{/reportes/{c}/estado(c=${reporte.codigo})}" method="post" class="formulario">
+                    <label>Nuevo estado
+                        <select name="estado">
+                            <option th:each="e : ${estadosPermitidos}" th:value="${e}" th:text="${e.etiqueta}" th:selected="${e == reporte.estado}"></option>
+                        </select>
+                    </label>
+                    <label th:if="${usuario.rol.name() == 'MUNICIPAL'}">Prioridad
+                        <select name="prioridad">
+                            <option th:each="p : ${prioridades}" th:value="${p}" th:text="${p.etiqueta}" th:selected="${p == reporte.prioridad}"></option>
+                        </select>
+                    </label>
+                    <label>Comentario<textarea name="comentario" rows="2" maxlength="500" placeholder="Ej. Cuadrilla asignada para el lunes"></textarea></label>
+                    <button class="btn btn-primario" type="submit">Guardar</button>
+                </form>
+            </div>
+            <div class="tarjeta">
+                <h3>Historial</h3>
+                <ol class="linea-tiempo">
+                    <li th:each="h : ${historial}">
+                        <span th:replace="~{fragmentos :: estado(${h.estadoNuevo})}"></span>
+                        <p th:if="${h.comentario}" th:text="${h.comentario}"></p>
+                        <small class="tenue" th:text="${#temporals.format(h.fecha, 'dd/MM/yyyy HH:mm')} + ' · ' + ${h.usuario.nombre} + ' · ' + ${h.nodoApp} + '/' + ${h.nodoBd}"></small>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Consultar reporte')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor angosto">
+    <form method="get" class="tarjeta formulario">
+        <h2>Consultar avance de un reporte</h2>
+        <label>Código del reporte<input name="codigo" th:value="${codigo}" placeholder="SIG-2026-XXXXXX" required></label>
+        <button class="btn btn-primario" type="submit">Consultar</button>
+    </form>
+    <div class="alerta error" th:if="${noEncontrado}">No existe ningún reporte con el código <b th:text="${codigo}"></b>.</div>
+    <div class="tarjeta" th:if="${reporte}">
+        <div class="titulo-fila">
+            <div>
+                <p class="codigo grande" th:text="${reporte.codigo}"></p>
+                <h3 th:text="${reporte.titulo}"></h3>
+            </div>
+            <span th:replace="~{fragmentos :: estado(${reporte.estado})}"></span>
+        </div>
+        <p class="tenue" th:text="${reporte.categoria.etiqueta} + ' · ' + ${reporte.direccion} + ', ' + ${reporte.municipio}"></p>
+        <p class="tenue" th:text="'Recibido el ' + ${#temporals.format(reporte.creado, 'dd/MM/yyyy HH:mm')}"></p>
+        <ol class="linea-tiempo">
+            <li th:each="h : ${historial}">
+                <span th:replace="~{fragmentos :: estado(${h.estadoNuevo})}"></span>
+                <p th:if="${h.comentario}" th:text="${h.comentario}"></p>
+                <small class="tenue" th:text="${#temporals.format(h.fecha, 'dd/MM/yyyy HH:mm')}"></small>
+            </li>
+        </ol>
+    </div>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

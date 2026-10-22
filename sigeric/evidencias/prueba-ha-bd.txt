@@ -1,0 +1,40 @@
+
+=== PRUEBA DE ALTA DISPONIBILIDAD - BASE DE DATOS (se apagará db1) ===
+>>> Estado inicial del clúster:
+   db1: activo (ve un clúster de 3 nodos)
+   db2: activo (ve un clúster de 3 nodos)
+   db3: activo (ve un clúster de 3 nodos)
+>>> Iniciando escrituras continuas a través del sistema...
+   Últimas escrituras:
+           5 app1->db2
+           5 app2->db2
+>>> DESCONECTANDO el nodo db1  (docker stop db1)
+>>> Clúster con un nodo menos:
+   db1: APAGADO
+   db2: activo (ve un clúster de 2 nodos)
+   db3: activo (ve un clúster de 2 nodos)
+   Escrituras mientras db1 está caído:
+           8 app1->db2
+           7 app2->db2
+>>> Insertando un dato DIRECTAMENTE en cada nodo que sigue vivo:
+   ✔ db2 aceptó la escritura
+   ✔ db3 aceptó la escritura
+>>> RECONECTANDO db1 (docker start db1): se sincroniza solo con lo que se perdió
+>>> Clúster recuperado:
+   db1: activo (ve un clúster de 3 nodos)
+   db2: activo (ve un clúster de 3 nodos)
+   db3: activo (ve un clúster de 3 nodos)
+
+=== RESULTADO ===
+   Escrituras exitosas: 122
+   Escrituras fallidas: 0
+   Tiempo de respuesta máximo: 0.517186 s  (promedio: 0.021 s)
+   Distribución (instancia -> nodo BD):
+          63 app1->db2
+          59 app2->db2
+   Filas en la tabla 'latido' en cada nodo (deben ser iguales):
+     db1: 2539
+     db2: 2539
+     db3: 2539
+
+✔ PRUEBA SUPERADA: el sistema siguió funcionando y escribiendo sin errores.

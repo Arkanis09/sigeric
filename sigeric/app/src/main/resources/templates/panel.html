@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Panel municipal')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor">
+    <h2>Panel municipal</h2>
+    <p class="tenue">Datos agregados para priorizar la atención.</p>
+    <div class="metricas">
+        <div class="metrica"><span th:text="${stats.total}">0</span>reportes totales</div>
+        <div class="metrica"><span th:text="${stats.pendientes}">0</span>pendientes</div>
+        <div class="metrica"><span th:text="${stats.resueltos}">0</span>resueltos</div>
+    </div>
+    <div class="cuadricula-2">
+        <div class="tarjeta">
+            <h3>Por categoría</h3>
+            <div class="barra-fila" th:each="e : ${stats.porCategoria}">
+                <span class="barra-etq" th:text="${e.key.etiqueta}"></span>
+                <span class="barra"><i th:style="'width:' + (${stats.total} > 0 ? ${e.value * 100 / stats.total} : 0) + '%'"></i></span>
+                <b th:text="${e.value}"></b>
+            </div>
+        </div>
+        <div class="tarjeta">
+            <h3>Por estado</h3>
+            <div class="barra-fila" th:each="e : ${stats.porEstado}">
+                <span class="barra-etq" th:text="${e.key.etiqueta}"></span>
+                <span class="barra"><i th:style="'width:' + (${stats.total} > 0 ? ${e.value * 100 / stats.total} : 0) + '%'"></i></span>
+                <b th:text="${e.value}"></b>
+            </div>
+        </div>
+    </div>
+    <p><a th:href="@{/reportes(estado='RECIBIDO')}" class="btn btn-primario">Ver reportes recibidos sin atender</a></p>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

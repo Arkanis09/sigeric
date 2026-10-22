@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Ingresar')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor angosto">
+    <div th:replace="~{fragmentos :: mensajes}"></div>
+    <div class="alerta error" th:if="${param.error}">Correo o contraseña incorrectos.</div>
+    <form th:action="@{/login}" method="post" class="tarjeta formulario">
+        <h2>Ingresar</h2>
+        <label>Correo<input type="email" name="email" required autofocus></label>
+        <label>Contraseña<input type="password" name="password" required></label>
+        <button class="btn btn-primario" type="submit">Ingresar</button>
+        <p class="tenue">¿No tienes cuenta? <a th:href="@{/registro}">Regístrate</a></p>
+        <p class="tenue">Demo: <code>ciudadano@sigeric.sv</code>, <code>adesco@sigeric.sv</code>,
+            <code>municipal@sigeric.sv</code> — contraseña <code>sigeric123</code></p>
+    </form>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

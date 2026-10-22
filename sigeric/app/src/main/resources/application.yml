@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  shutdown: graceful            # al detener una instancia termina las peticiones en curso
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 30m
+
+sigeric:
+  nodo-app: ${NODO_APP:local}
+
+spring:
+  application:
+    name: sigeric
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+  datasource:
+    # Modo "sequential" del driver MariaDB: conoce los 3 nodos de Galera y, si el nodo
+    # actual se cae, abre las conexiones nuevas en el siguiente. transactionReplay repite
+    # automáticamente la transacción que estaba en curso cuando el nodo se cayó.
+    # socketTimeout (8 s) debe ser mayor que lo que Galera tarda en expulsar un nodo caído (~3-6 s).
+    url: ${DB_URL:jdbc:mariadb:sequential://localhost:3306/sigeric}?transactionReplay=true&connectTimeout=2000&socketTimeout=8000&retriesAllDown=10
+    username: ${DB_USER:sigeric}
+    password: ${DB_PASSWORD:Sigeric2026}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+      validation-timeout: 1000
+      keepalive-time: 30000
+      max-lifetime: 300000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate        # el esquema lo crea galera/01-esquema.sql
+  session:
+    jdbc:
+      initialize-schema: never  # tablas SPRING_SESSION creadas en 01-esquema.sql
+  thymeleaf:
+    cache: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

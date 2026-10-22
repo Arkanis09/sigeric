@@ -1,0 +1,13 @@
+PRUEBA DE ESTRÉS: 3 escritores en paralelo + 1 usuario con sesión iniciada creando reportes,
+mientras se provocan 8 fallas seguidas:
+1) kill db1  2) kill app1  3) desconexión de red de db2  4) stop db1 + app1
+5) kill db2 + app2  6) kill db3  7) desconexión de red de db1  8) stop app2
+
+ESCRITURAS API: 2415 total, 0 fallidas, máx 8.028042s
+USUARIO: 351 páginas OK, 351 reportes creados OK, 0 fallos
+máx usuario: 8.352834s
+db1 reportes=354 latidos=2415
+db2 reportes=354 latidos=2415
+db3 reportes=354 latidos=2415
+REINTENTOS: app1=1 app2=0
+2026-10-22T09:47:19.480-06:00  WARN 1 --- [sigeric] [io-8080-exec-10] s.u.s.config.AltaDisponibilidadConfig    : Reintento 1 tras fallo de BD (sv.ufg.sigeric.service.UsuarioService.porEmail): Hibernate transaction: Unabl

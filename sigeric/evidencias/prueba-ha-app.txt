@@ -1,0 +1,28 @@
+
+=== PRUEBA DE ALTA DISPONIBILIDAD - APLICACIÓN (se detendrá app1) ===
+>>> Iniciando peticiones continuas a través del balanceador NGINX...
+   NGINX reparte entre las dos instancias:
+           7 app1->db2
+           7 app2->db2
+>>> DETENIENDO la instancia app1  (docker stop app1)
+   Peticiones mientras app1 está detenida (todas las atiende la otra):
+          15 app2->db2
+>>> REINICIANDO app1 (docker start app1)
+   app1 vuelve a la rotación automáticamente:
+           6 app1->db1
+           8 app2->db2
+
+=== RESULTADO ===
+   Escrituras exitosas: 145
+   Escrituras fallidas: 0
+   Tiempo de respuesta máximo: 1.015140 s  (promedio: 0.035 s)
+   Distribución (instancia -> nodo BD):
+          26 app1->db1
+          11 app1->db2
+         108 app2->db2
+   Filas en la tabla 'latido' en cada nodo (deben ser iguales):
+     db1: 2684
+     db2: 2684
+     db3: 2684
+
+✔ PRUEBA SUPERADA: el sistema siguió funcionando y escribiendo sin errores.

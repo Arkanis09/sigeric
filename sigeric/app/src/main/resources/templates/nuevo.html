@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Nuevo reporte')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor angosto">
+    <form th:action="@{/reportes/nuevo}" th:object="${form}" method="post" class="tarjeta formulario">
+        <h2>Nuevo reporte</h2>
+        <label>Categoría
+            <select th:field="*{categoria}" required>
+                <option value="">Selecciona…</option>
+                <option th:each="c : ${categorias}" th:value="${c}" th:text="${c.etiqueta}"></option>
+            </select>
+        </label>
+        <small class="err" th:errors="*{categoria}"></small>
+        <label>Título<input th:field="*{titulo}" maxlength="150" placeholder="Ej. Bache frente a la escuela" required></label>
+        <small class="err" th:errors="*{titulo}"></small>
+        <label>Descripción<textarea th:field="*{descripcion}" rows="4" maxlength="2000" required placeholder="¿Qué pasa? ¿Desde cuándo? ¿Es peligroso?"></textarea></label>
+        <small class="err" th:errors="*{descripcion}"></small>
+        <label>Dirección o punto de referencia<input th:field="*{direccion}" maxlength="200" required></label>
+        <small class="err" th:errors="*{direccion}"></small>
+        <label>Municipio<input th:field="*{municipio}" maxlength="80" required></label>
+        <small class="err" th:errors="*{municipio}"></small>
+        <button class="btn btn-acento" type="submit">Enviar reporte</button>
+    </form>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

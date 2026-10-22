@@ -1,0 +1,21 @@
+# Configuración común de los 3 nodos del clúster MariaDB Galera.
+# El nombre y la IP de cada nodo se pasan por línea de comandos en docker-compose.yml
+[mysqld]
+binlog_format            = ROW
+default_storage_engine   = InnoDB
+innodb_autoinc_lock_mode = 2
+bind-address             = 0.0.0.0
+character-set-server     = utf8mb4
+collation-server         = utf8mb4_unicode_ci
+
+# --- Galera ---
+wsrep_on                 = ON
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
+wsrep_cluster_name       = sigeric_cluster
+wsrep_cluster_address    = gcomm://172.28.50.11,172.28.50.12,172.28.50.13
+wsrep_sst_method         = rsync
+# Cada nodo genera ids AUTO_INCREMENT distintos para no chocar al escribir en paralelo
+wsrep_auto_increment_control = ON
+# pc.recovery: si se apagan todos de golpe (corte de luz), el clúster se recupera solo
+# Detección rápida de nodos caídos o desconectados (por defecto Galera tarda ~15 s)
+wsrep_provider_options   = "pc.recovery=TRUE;gcache.size=128M;evs.keepalive_period=PT1S;evs.suspect_timeout=PT3S;evs.inactive_timeout=PT6S;evs.inactive_check_period=PT0.5S"

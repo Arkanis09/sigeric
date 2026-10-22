@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragmentos :: head('Inicio')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main>
+    <section class="hero">
+        <div class="contenedor hero-in">
+            <div>
+                <p class="sobre">Sistema de Gestión de Reportes e Infraestructura Comunitaria</p>
+                <h1>Reporta baches, alumbrado y fugas.<br>Dale seguimiento hasta que se resuelva.</h1>
+                <p class="lead">Cada reporte recibe un código único, fecha verificable y un historial de estados
+                    que puedes consultar en cualquier momento. Ciudadanía, ADESCO y alcaldía en un solo canal.</p>
+                <div class="acciones">
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-acento">Crear un reporte</a>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/reportes/nuevo}" class="btn btn-acento">Crear un reporte</a>
+                    <a th:href="@{/registro}" sec:authorize="!isAuthenticated()" class="btn btn-claro">Registrarme</a>
+                </div>
+            </div>
+            <form th:action="@{/seguimiento}" method="get" class="tarjeta consulta">
+                <h3>¿Ya hiciste un reporte?</h3>
+                <p class="tenue">Escribe el código que te dio el sistema.</p>
+                <input name="codigo" placeholder="SIG-2026-XXXXXX" required>
+                <button class="btn btn-primario" type="submit">Consultar avance</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="contenedor">
+        <div class="metricas">
+            <div class="metrica"><span th:text="${stats.total}">0</span>reportes registrados</div>
+            <div class="metrica"><span th:text="${stats.pendientes}">0</span>en atención</div>
+            <div class="metrica"><span th:text="${stats.resueltos}">0</span>resueltos</div>
+        </div>
+
+        <div class="cuadricula-3">
+            <div class="tarjeta categoria c-BACHE"><h3>Baches y calles</h3><p>Calles dañadas, hundimientos y tapaderas faltantes.</p></div>
+            <div class="tarjeta categoria c-ALUMBRADO"><h3>Alumbrado público</h3><p>Luminarias apagadas, intermitentes o dañadas.</p></div>
+            <div class="tarjeta categoria c-FUGA"><h3>Fugas de agua</h3><p>Tuberías rotas y fugas de agua potable o aguas negras.</p></div>
+        </div>
+
+        <div class="tarjeta demo">
+            <h3>Usuarios de demostración</h3>
+            <p class="tenue">Contraseña de todos: <code>sigeric123</code></p>
+            <ul>
+                <li><code>ciudadano@sigeric.sv</code> — crea reportes y consulta los suyos</li>
+                <li><code>adesco@sigeric.sv</code> — valida o rechaza reportes de la comunidad</li>
+                <li><code>municipal@sigeric.sv</code> — gestiona el ciclo completo y ve el panel</li>
+            </ul>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>

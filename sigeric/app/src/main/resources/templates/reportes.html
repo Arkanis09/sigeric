@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragmentos :: head('Reportes')}"></head>
+<body>
+<header th:replace="~{fragmentos :: nav}"></header>
+<main class="contenedor">
+    <div th:replace="~{fragmentos :: mensajes}"></div>
+    <div class="titulo-fila">
+        <div>
+            <h2 th:text="${usuario.rol.name() == 'CIUDADANO'} ? 'Mis reportes' : 'Reportes de la comunidad'">Reportes</h2>
+            <p class="tenue" th:text="${usuario.nombre} + ' · ' + ${usuario.rol.etiqueta}"></p>
+        </div>
+        <a th:href="@{/reportes/nuevo}" class="btn btn-acento" sec:authorize="hasAnyRole('CIUDADANO','ADESCO')">+ Nuevo reporte</a>
+    </div>
+
+    <form method="get" class="filtros" th:if="${usuario.rol.name() != 'CIUDADANO'}">
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            <option th:each="e : ${estados}" th:value="${e}" th:text="${e.etiqueta}" th:selected="${e == filtroEstado}"></option>
+        </select>
+        <select name="categoria">
+            <option value="">Todas las categorías</option>
+            <option th:each="c : ${categorias}" th:value="${c}" th:text="${c.etiqueta}" th:selected="${c == filtroCategoria}"></option>
+        </select>
+        <button class="btn btn-claro" type="submit">Filtrar</button>
+    </form>
+
+    <div class="tarjeta sin-relleno">
+        <table class="tabla">
+            <thead><tr><th>Código</th><th>Problema</th><th>Categoría</th><th>Dirección</th><th>Estado</th><th>Prioridad</th><th>Fecha</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${reportes}">
+                <td><a th:href="@{/reportes/{c}(c=${r.codigo})}" th:text="${r.codigo}" class="codigo"></a></td>
+                <td th:text="${r.titulo}"></td>
+                <td><span th:class="'cat c-' + ${r.categoria.name()}" th:text="${r.categoria.etiqueta}"></span></td>
+                <td th:text="${r.direccion}"></td>
+                <td><span th:replace="~{fragmentos :: estado(${r.estado})}"></span></td>
+                <td th:text="${r.prioridad.etiqueta}"></td>
+                <td th:text="${#temporals.format(r.creado, 'dd/MM/yyyy HH:mm')}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reportes)}"><td colspan="7" class="vacio">No hay reportes todavía.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer th:replace="~{fragmentos :: pie}"></footer>
+</body>
+</html>
